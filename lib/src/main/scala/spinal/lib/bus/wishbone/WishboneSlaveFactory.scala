@@ -1,5 +1,5 @@
 /**@todo: Support RTY signal*/
-/**@todo: SUpport Burts mode (specially for memory)*/
+/**@todo: Support Burst mode (specially for memory)*/
 
 package spinal.lib.bus.wishbone
 
@@ -9,16 +9,16 @@ import scala.collection.Seq
 
 /** Factory for [[spinal.lib.bus.wishbone.WishboneSlaveFactory]] instances. */
 object WishboneSlaveFactory {
-  /** This is the slave facotory fot the wishbone bus
-    * @param bus the wishbone bus istance that will connect with the module
-    * @return an istanciated class of [[spinal.lib.bus.wishbone.WishboneSlaveFactory]]
+  /** This is the slave factory for the wishbone bus
+    * @param bus the wishbone bus instance that will connect with the module
+    * @return an instantiated class of [[spinal.lib.bus.wishbone.WishboneSlaveFactory]]
     */
   def apply(bus: Wishbone,reg_fedback: Boolean = true) = new WishboneSlaveFactory(bus,reg_fedback)
 }
 
-/** This is the slave facotory fot the wishbone bus
-  * @param bus the wishbone bus istance that will connect with the module
-  * @param reg_fedback if set to false, the slave will acknoledge as soon as possible otherwise will wait the next clock cycle(default)
+/** This is the slave factory for the wishbone bus
+  * @param bus the wishbone bus instance that will connect with the module
+  * @param reg_fedback if set to false, the slave will acknowledge as soon as possible otherwise will wait for the next clock cycle(default)
   */
 class WishboneSlaveFactory(bus: Wishbone,reg_fedback: Boolean = true) extends BusSlaveFactoryDelayed{
   bus.DAT_MISO := 0
@@ -30,13 +30,13 @@ class WishboneSlaveFactory(bus: Wishbone,reg_fedback: Boolean = true) extends Bu
   val doRead = bus.doRead.allowPruning()
 
   if(!reg_fedback){
-    bus.ACK := bus.STB && bus.CYC                 //Acknoledge as fast as possible
+    bus.ACK := bus.STB && bus.CYC                 //Acknowledge as fast as possible
   } else if(bus.config.isPipelined){
     val pip_reg = RegNext(bus.STB) init(False)
-    bus.ACK := pip_reg || (bus.STALL && bus.CYC)  //Pipelined: Acknoledge at the next clock cycle
+    bus.ACK := pip_reg || (bus.STALL && bus.CYC)  //Pipelined: Acknowledge at the next clock cycle
   } else {
     val reg_reg = RegNext(bus.STB && bus.CYC) init(False)
-    bus.ACK := reg_reg && bus.STB                 //Classic: Acknoledge at the next clock cycle
+    bus.ACK := reg_reg && bus.STB                 //Classic: Acknowledge at the next clock cycle
   }
 
   val byteAddress = bus.ADR << log2Up(bus.config.dataWidth/8)
